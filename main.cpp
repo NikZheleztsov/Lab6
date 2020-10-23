@@ -53,16 +53,6 @@ std::ostream& operator << (std::ostream& out, std::vector<student>& stud)
   return out;
 }
 
-std::string getl (std::string name) 
-{
-    std::fstream file(name);
-    
-    std::string str;
-    std::getline(file, str, '\0');
-
-    return str;
-}
-
 int main () 
 {
   char answ = 0;
@@ -82,20 +72,16 @@ int main ()
     file.open(name_file, std::ios::out);
     
     //Names of disciplines
-    //int num = 0;
     std::cout << "Please, enter number of subjects: ";
     std::cin >> num;
     subj.resize(num);
-    //std::vector<discipline> subj (num);
     for (int i = 0; i < num; ++i)
       std::cin >> subj[i].name;
 
     //Names, grades of students
-    //int num2 = 0;
     std::cout << "Please, enter number of students: ";
     std::cin >> num2;
     stud.resize (num2);
-    //std::vector<student> stud (num2);
     for (int i =0; i < num2; ++i) 
     {
       std::cin.ignore(256, '\n');
@@ -113,11 +99,10 @@ int main ()
     }
   } else {
 
-    //file.open(name_file, std::ios::in);
+    file.open(name_file, std::ios::in);
     std::string file_str;
-    //std::getline(file, file_str,'\0');
+    std::getline(file, file_str,'\0');
 
-    file_str = getl(name_file);
 
     //Analazing of the file
     //Student's name
