@@ -100,12 +100,22 @@ std::istream& operator >> (std::istream& file, std::vector<student>& stud)
     subj.resize(it);
     num = it; //number of subj
 
+    int grades[] = {'=', '1', '2', '3', '4', '5'};
     for (i = 0; i < last; i++)
     {
         k = file_str[i];
         if (k == ':')
         {
+            int counter = 0;
             pos = file_str.rfind(' ', i);
+
+            for (int j = 0; j < 6; j++)   // several words in the name of the subject
+                if (file_str[pos - 1] == grades[j])
+                    counter++;
+            
+            if (counter == 0)
+                pos = file_str.rfind(' ', pos - 1);
+
             subj[l].name  = file_str.substr(pos + 1, i - pos - 1);
             l++;
         } 
@@ -191,12 +201,22 @@ void read (std::istream& file, std::vector<student>& stud)
     subj.resize(it);
     num = it; //number of subj
 
+    int grades[] = {'=', '1', '2', '3', '4', '5'};
     for (i = 0; i < last; i++)
     {
         k = file_str[i];
         if (k == ':')
         {
+            int counter = 0;
             pos = file_str.rfind(' ', i);
+
+            for (int j = 0; j < 6; j++)   // several words in the name of the subject
+                if (file_str[pos - 1] == grades[j])
+                    counter++;
+            
+            if (counter == 0)
+                pos = file_str.rfind(' ', pos - 1);
+
             subj[l].name  = file_str.substr(pos + 1, i - pos - 1);
             l++;
         } 
