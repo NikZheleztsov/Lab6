@@ -41,6 +41,97 @@ float average (student stud, int num)
     return result;
 }
 
+void str_parsing (std::vector<student>& stud, std::string& file_str)
+{
+    int num = 0, num2 = 0;
+    std::vector<discipline> subj (num);
+    //Analazing of the file
+    //Student's name
+    int pos = 0, last = 0, it = -1;
+    while (pos != -1)
+    {
+        pos = file_str.find('\n', pos + 1);
+        it++;
+    }
+
+    stud.resize(it);
+    pos = 0, it = 0;
+
+    while (pos != -1) 
+    {
+        pos = file_str.find(" = ", pos + 1);
+        last = file_str.rfind('\n', pos);
+        if (last != -1 && pos != -1 ) 
+            stud[it].FCs = file_str.substr(last + 1, pos - last - 1);
+        else if (pos != -1) stud[it].FCs = file_str.substr(0, pos);
+        it++;
+    }
+    num2 = it - 1;  //number of students
+    last = 0, it = 0, pos = 0;
+
+    //Desciplines
+    char k = 0;
+    int i = 0, l = 0;
+    last = file_str.find('\n', 0);
+    for (i = 0; i < last; i++)
+    {
+        k = file_str[i];
+        if (k == ':')
+        {
+            it++;
+        }
+    }
+    subj.resize(it);
+    num = it; //number of subj
+
+    int grades[] = {'=', '1', '2', '3', '4', '5'};
+    for (i = 0; i < last; i++)
+    {
+        k = file_str[i];
+        if (k == ':')
+        {
+            int counter = 0;
+            pos = file_str.rfind(' ', i);
+
+            for (int j = 0; j < 6; j++)   // several words in the name of the subject
+                if (file_str[pos - 1] == grades[j])
+                    counter++;
+            
+            if (counter == 0)
+                pos = file_str.rfind(' ', pos - 1);
+
+            subj[l].name  = file_str.substr(pos + 1, i - pos - 1);
+            l++;
+        } 
+    }
+
+    int new_pos = 0,
+        a = 0;
+
+    for (int l = 0; l < num2; ++l) //students
+    {
+        stud[l].subjects.resize(it);
+        for (int i = 0; i < it; i++) //subj
+            stud[l].subjects[i].name = subj[i].name;
+
+        for (int i = new_pos; i < last; i++)
+        {
+            k = file_str[i];
+            if (k == ':')
+            {
+                pos = file_str.find(' ', i);
+                stud[l].subjects[a].grade = std::stoi(file_str.substr(i+1, pos - i - 1));
+                a++;
+            }
+            if (a == 3) break;
+        }
+        new_pos = last + 1;
+        last = file_str.find('\n', last + 1);
+        a = 0;
+    }
+
+}
+
 std::ostream& operator << (std::ostream& out, std::vector<student>& stud)
 {
     for (int i = 0; i < stud.size(); ++i)
@@ -55,104 +146,17 @@ std::ostream& operator << (std::ostream& out, std::vector<student>& stud)
 
 std::istream& operator >> (std::istream& file, std::vector<student>& stud)
 {
-    int num = 0, num2 = 0;
-    std::vector<discipline> subj (num);
     std::string file_str;
 
     std::getline(file, file_str,'\0');
 
-    //Analazing of the file
-    //Student's name
-    int pos = 0, last = 0, it = -1;
-    while (pos != -1)
-    {
-        pos = file_str.find('\n', pos + 1);
-        it++;
-    }
-
-    stud.resize(it);
-    pos = 0, it = 0;
-
-    while (pos != -1) 
-    {
-        pos = file_str.find(" = ", pos + 1);
-        last = file_str.rfind('\n', pos);
-        if (last != -1 && pos != -1 ) 
-            stud[it].FCs = file_str.substr(last + 1, pos - last - 1);
-        else if (pos != -1) stud[it].FCs = file_str.substr(0, pos);
-        it++;
-    }
-    num2 = it - 1;  //number of students
-    last = 0, it = 0, pos = 0;
-
-    //Desciplines
-    char k = 0;
-    int i = 0, l = 0;
-    last = file_str.find('\n', 0);
-    for (i = 0; i < last; i++)
-    {
-        k = file_str[i];
-        if (k == ':')
-        {
-            it++;
-        }
-    }
-    subj.resize(it);
-    num = it; //number of subj
-
-    int grades[] = {'=', '1', '2', '3', '4', '5'};
-    for (i = 0; i < last; i++)
-    {
-        k = file_str[i];
-        if (k == ':')
-        {
-            int counter = 0;
-            pos = file_str.rfind(' ', i);
-
-            for (int j = 0; j < 6; j++)   // several words in the name of the subject
-                if (file_str[pos - 1] == grades[j])
-                    counter++;
-            
-            if (counter == 0)
-                pos = file_str.rfind(' ', pos - 1);
-
-            subj[l].name  = file_str.substr(pos + 1, i - pos - 1);
-            l++;
-        } 
-    }
-
-    int new_pos = 0,
-        a = 0;
-
-    for (int l = 0; l < num2; ++l) //students
-    {
-        stud[l].subjects.resize(it);
-        for (int i = 0; i < it; i++) //subj
-            stud[l].subjects[i].name = subj[i].name;
-
-        for (int i = new_pos; i < last; i++)
-        {
-            k = file_str[i];
-            if (k == ':')
-            {
-                pos = file_str.find(' ', i);
-                stud[l].subjects[a].grade = std::stoi(file_str.substr(i+1, pos - i - 1));
-                a++;
-            }
-            if (a == 3) break;
-        }
-        new_pos = last + 1;
-        last = file_str.find('\n', last + 1);
-        a = 0;
-    }
+    str_parsing(stud, file_str);
 
     return file;
 }
 
 void read (std::istream& file, std::vector<student>& stud)
 {
-    int num = 0, num2 = 0;
-    std::vector<discipline> subj (num);
     std::string file_str;
 
     auto size = file.tellg();
@@ -162,90 +166,7 @@ void read (std::istream& file, std::vector<student>& stud)
     file_str = memblock;
     delete [] memblock;
 
-    //Analazing of the file
-    //Student's name
-    int pos = 0, last = 0, it = -1;
-    while (pos != -1)
-    {
-        pos = file_str.find('\n', pos + 1);
-        it++;
-    }
-
-    stud.resize(it);
-    pos = 0, it = 0;
-
-    while (pos != -1) 
-    {
-        pos = file_str.find(" = ", pos + 1);
-        last = file_str.rfind('\n', pos);
-        if (last != -1 && pos != -1 ) 
-            stud[it].FCs = file_str.substr(last + 1, pos - last - 1);
-        else if (pos != -1) stud[it].FCs = file_str.substr(0, pos);
-        it++;
-    }
-    num2 = it - 1;  //number of students
-    last = 0, it = 0, pos = 0;
-
-    //Desciplines
-    char k = 0;
-    int i = 0, l = 0;
-    last = file_str.find('\n', 0);
-    for (i = 0; i < last; i++)
-    {
-        k = file_str[i];
-        if (k == ':')
-        {
-            it++;
-        }
-    }
-    subj.resize(it);
-    num = it; //number of subj
-
-    int grades[] = {'=', '1', '2', '3', '4', '5'};
-    for (i = 0; i < last; i++)
-    {
-        k = file_str[i];
-        if (k == ':')
-        {
-            int counter = 0;
-            pos = file_str.rfind(' ', i);
-
-            for (int j = 0; j < 6; j++)   // several words in the name of the subject
-                if (file_str[pos - 1] == grades[j])
-                    counter++;
-            
-            if (counter == 0)
-                pos = file_str.rfind(' ', pos - 1);
-
-            subj[l].name  = file_str.substr(pos + 1, i - pos - 1);
-            l++;
-        } 
-    }
-
-    int new_pos = 0,
-        a = 0;
-
-    for (int l = 0; l < num2; ++l) //students
-    {
-        stud[l].subjects.resize(it);
-        for (int i = 0; i < it; i++) //subj
-            stud[l].subjects[i].name = subj[i].name;
-
-        for (int i = new_pos; i < last; i++)
-        {
-            k = file_str[i];
-            if (k == ':')
-            {
-                pos = file_str.find(' ', i);
-                stud[l].subjects[a].grade = std::stoi(file_str.substr(i+1, pos - i - 1));
-                a++;
-            }
-            if (a == 3) break;
-        }
-        new_pos = last + 1;
-        last = file_str.find('\n', last + 1);
-        a = 0;
-    }
+    str_parsing(stud, file_str);
 }
 
 void write (std::ostream& out, std::string file_str) // не знай, зачем это тут, но пусть будет)
