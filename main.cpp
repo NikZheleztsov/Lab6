@@ -67,7 +67,7 @@ void str_parsing (std::vector<student>& stud, std::string& file_str)
         it++;
     }
     num2 = it - 1;  //number of students
-    last = 0, it = 0, pos = 0;
+    it = 0;
 
     //Desciplines
     char k = 0;
@@ -82,7 +82,6 @@ void str_parsing (std::vector<student>& stud, std::string& file_str)
         }
     }
     subj.resize(it);
-    num = it; //number of subj
 
     int grades[] = {'=', '1', '2', '3', '4', '5'};
     for (i = 0; i < last; i++)
@@ -178,7 +177,7 @@ int main ()
 {
     char answ = 0;
     std::string name_file;
-    std::cout << "Do you want to read from a file or write information in it?\n Or maybe you want to work with binary files? (r/w/b) ";
+    std::cout << "Do you want to read from a file or write information in it?\nOr maybe you want to work with binary files? (r/w/b) ";
     std::cin >> answ;
     std::cout << "Please, enter a name of file: ";
     std::cin >> name_file;
