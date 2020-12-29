@@ -156,17 +156,23 @@ void read (std::vector<student>& stud, std::string name_file, int num)
 
     if(file.is_open()) {
 
-        int size = file.tellg();
+        //int size = file.tellg();
         file.seekg(0, std::ios::beg);
-        //stud.reserve(size);
+        stud.resize(num);
 
         //char* memblock = new char [size];
         //std::string file_str;
         //std::string memblock (size, '\0');
 
+        //short size;
+        //file.read(reinterpret_cast<char*>(&size), sizeof(short));
+        //file.read(reinterpret_cast<char*>(&stud[0].FCs), size);
+
         //char* memblock = new char [size];
         //student* arr = new student [num];
+        
         file.read (reinterpret_cast<char*>(&stud[0]), num * sizeof(student)); //инвалидация указателя
+
         //file_str = static_cast<std::string>(memblock);
         //int str_size = static_cast<std::string>(memblock).size();
         //delete [] memblock;
@@ -186,6 +192,12 @@ void write (std::ostream& out, std::vector<student> stud)
     //std::copy(stud.begin(), stud.end(), arr);
 
     out.write(reinterpret_cast<const char*>(&stud[0]), stud.size() * sizeof(student));
+
+    /*
+    short size = sizeof(stud[0].FCs);
+    out.write(reinterpret_cast<char*>(&size), sizeof(short));
+    out.write(reinterpret_cast<char*>(&stud[0].FCs), size);
+    */
 }
 
 int main () 
