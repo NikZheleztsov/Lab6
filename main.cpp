@@ -150,7 +150,7 @@ std::istream& operator >> (std::istream& file, std::vector<student>& stud)
     return file;
 }
 
-void read (std::vector<student>& stud, std::string name_file)
+void read (std::vector<student>& stud, std::string name_file, int num)
 {
     std::ifstream file (name_file, std::ios::binary | std::ios::in | std::ios::ate);
 
@@ -158,25 +158,34 @@ void read (std::vector<student>& stud, std::string name_file)
 
         int size = file.tellg();
         file.seekg(0, std::ios::beg);
+        //stud.reserve(size);
 
         //char* memblock = new char [size];
         //std::string file_str;
-        std::string memblock (size, '\0');
+        //std::string memblock (size, '\0');
 
         //char* memblock = new char [size];
-        file.read (reinterpret_cast<char*>(&memblock[0]), size); //инвалидация указателя
+        //student* arr = new student [num];
+        file.read (reinterpret_cast<char*>(&stud[0]), num * sizeof(student)); //инвалидация указателя
         //file_str = static_cast<std::string>(memblock);
         //int str_size = static_cast<std::string>(memblock).size();
         //delete [] memblock;
+        //for (int i = 0; i < num; i++)
+        //    stud.push_back(arr[i]);
 
-        str_parsing(stud, memblock);
+        //str_parsing(stud, memblock);
+
+        file.close();
 
     } else std::cout << "Unable to open file\n";
 }
 
-void write (std::ostream& out, std::string file_str) 
+void write (std::ostream& out, std::vector<student> stud) 
 {
-    out.write(reinterpret_cast<char*>(&file_str[0]), file_str.size());
+    //student* arr = new student [stud.size()];
+    //std::copy(stud.begin(), stud.end(), arr);
+
+    out.write(reinterpret_cast<const char*>(&stud[0]), stud.size() * sizeof(student));
 }
 
 int main () 
@@ -245,7 +254,10 @@ int main ()
 
     } else if (answ == 'b')
     {
-        read(stud, name_file);
+        std::cout << "Please, enter number of students: ";
+        int num;
+        std::cin >> num;
+        read(stud, name_file, num);
 
     } else 
         std::cout << "Unknown command\n";
@@ -297,10 +309,10 @@ int main ()
             std::cin >> new_name_file;
             std::ofstream out (new_name_file, std::ios::binary);
 
-            file.open(name_file, std::ios::in);
-            std::getline(file, file_str,'\0');
+            //file.open(name_file, std::ios::in);
+            //std::getline(file, file_str,'\0');
 
-            write(out, file_str);
+            write(out, stud);
 
             out.close(); 
 
