@@ -27,9 +27,7 @@ bool compare (student stud1, student stud2)
     int i = 0;
     for (i = 0; stud1.FCs[i] == stud2.FCs[i]; ++i);
 
-    if (stud1.FCs[i] < stud2.FCs[i])
-        return 1;
-    else return 0;
+    return (stud1.FCs[i] < stud2.FCs[i]);
 }
 
 float average (student stud, int num)
@@ -146,31 +144,39 @@ std::ostream& operator << (std::ostream& out, std::vector<student>& stud)
 std::istream& operator >> (std::istream& file, std::vector<student>& stud)
 {
     std::string file_str;
-
     std::getline(file, file_str,'\0');
-
     str_parsing(stud, file_str);
 
     return file;
 }
 
-void read (std::istream& file, std::vector<student>& stud)
+void read (std::vector<student>& stud, std::string name_file)
 {
-    std::string file_str;
+    std::ifstream file (name_file, std::ios::binary | std::ios::in | std::ios::ate);
 
-    auto size = file.tellg();
-    char* memblock = new char [size];
-    file.seekg(0, std::ios::beg);
-    file.read (memblock, size);
-    file_str = memblock;
-    delete [] memblock;
+    if(file.is_open()) {
 
-    str_parsing(stud, file_str);
+        int size = file.tellg();
+        file.seekg(0, std::ios::beg);
+
+        //char* memblock = new char [size];
+        //std::string file_str;
+        std::string memblock (size, '\0');
+
+        //char* memblock = new char [size];
+        file.read (reinterpret_cast<char*>(&memblock[0]), size); //инвалидация указателя
+        //file_str = static_cast<std::string>(memblock);
+        //int str_size = static_cast<std::string>(memblock).size();
+        //delete [] memblock;
+
+        str_parsing(stud, memblock);
+
+    } else std::cout << "Unable to open file\n";
 }
 
-void write (std::ostream& out, std::string file_str) // не знай, зачем это тут, но пусть будет)
+void write (std::ostream& out, std::string file_str) 
 {
-    out.write(file_str.c_str(), file_str.size());
+    out.write(reinterpret_cast<char*>(&file_str[0]), file_str.size());
 }
 
 int main () 
@@ -239,13 +245,7 @@ int main ()
 
     } else if (answ == 'b')
     {
-        file.open(name_file, std::ios::binary | std::ios::in | std::ios::ate);
-
-        if(file.is_open()) {
-
-            read(file, stud);
-
-        } else std::cout << "Unable to open file\n";
+        read(stud, name_file);
 
     } else 
         std::cout << "Unknown command\n";
