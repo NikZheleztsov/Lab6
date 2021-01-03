@@ -8,6 +8,7 @@
 #include <vector>
 #include <cstdlib>
 #include <iomanip>
+#include <iterator>
 
 struct discipline
 {
@@ -152,12 +153,14 @@ std::istream& operator >> (std::istream& file, std::vector<student>& stud)
 
 void read (std::vector<student>& stud, std::string name_file, int num)
 {
-    std::ifstream file (name_file, std::ios::binary | std::ios::in | std::ios::ate);
+    //std::ifstream file (name_file, std::ios::binary | std::ios::in | std::ios::ate);
+    std::FILE* file = std::fopen(name_file.c_str(), "rb");
 
-    if(file.is_open()) {
+    //if(file.is_open()) {
+    if (file) {
 
         //int size = file.tellg();
-        file.seekg(0, std::ios::beg);
+        //file.seekg(0, std::ios::beg);
         stud.resize(num);
 
         //char* memblock = new char [size];
@@ -171,7 +174,15 @@ void read (std::vector<student>& stud, std::string name_file, int num)
         //char* memblock = new char [size];
         //student* arr = new student [num];
         
-        file.read (reinterpret_cast<char*>(&stud[0]), num * sizeof(student)); //инвалидация указателя
+        //file.read (reinterpret_cast<char*>(&stud[0]), num * sizeof(student)); //инвалидация указателя
+        for (int i = 0; i < num; i ++)
+            std::fread(&stud[i], sizeof(student), 1, file);
+        
+        /*
+        std::copy (std::istream_iterator<student>(file),
+                   std::istream_iterator<student>(),
+                   std::back_inserter(stud));
+                   */
 
         //file_str = static_cast<std::string>(memblock);
         //int str_size = static_cast<std::string>(memblock).size();
@@ -181,7 +192,8 @@ void read (std::vector<student>& stud, std::string name_file, int num)
 
         //str_parsing(stud, memblock);
 
-        file.close();
+        //file.close();
+        std::fclose(file);
 
     } else std::cout << "Unable to open file\n";
 }
@@ -191,7 +203,7 @@ void write (std::ostream& out, std::vector<student> stud)
     //student* arr = new student [stud.size()];
     //std::copy(stud.begin(), stud.end(), arr);
 
-    out.write(reinterpret_cast<const char*>(&stud[0]), stud.size() * sizeof(student));
+    out.write(reinterpret_cast<char*>(&stud[0]), stud.size() * sizeof(student));
 
     /*
     short size = sizeof(stud[0].FCs);
