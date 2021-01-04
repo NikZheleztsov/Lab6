@@ -23,13 +23,6 @@ struct student
     std::vector<discipline> subjects;
 };
 
-bool compare (student stud1, student stud2)
-{
-    int i = 0;
-    for (i = 0; stud1.FCs[i] == stud2.FCs[i]; ++i);
-
-    return (stud1.FCs[i] < stud2.FCs[i]);
-}
 
 float average (student stud, int num)
 {
@@ -151,72 +144,55 @@ std::istream& operator >> (std::istream& file, std::vector<student>& stud)
     return file;
 }
 
-void read (std::vector<student>& stud, std::string name_file, int num)
+void read (std::vector<student>& stud, std::string name_file)
 {
-    //std::ifstream file (name_file, std::ios::binary | std::ios::in | std::ios::ate);
-    std::FILE* file = std::fopen(name_file.c_str(), "rb");
+    std::ifstream file (name_file, std::ios::binary | std::ios::in);
 
-    //if(file.is_open()) {
-    if (file) {
+    if(file.is_open()) {
 
-        //int size = file.tellg();
-        //file.seekg(0, std::ios::beg);
+        int num = 0; //stud
+        file.read(reinterpret_cast<char*>(&num), sizeof(int));
         stud.resize(num);
 
-        //char* memblock = new char [size];
-        //std::string file_str;
-        //std::string memblock (size, '\0');
+        int num2 = 0; //subj
+        file.read(reinterpret_cast<char*>(&num2), sizeof(int));
 
-        //short size;
-        //file.read(reinterpret_cast<char*>(&size), sizeof(short));
-        //file.read(reinterpret_cast<char*>(&stud[0].FCs), size);
+        for (int i = 0; i < num; i++)
+        {
+            stud[i].subjects.resize(num2);
+            file.read (reinterpret_cast<char*>(&stud[i]), sizeof(student));
+        }
 
-        //char* memblock = new char [size];
-        //student* arr = new student [num];
-        
-        //file.read (reinterpret_cast<char*>(&stud[0]), num * sizeof(student)); //инвалидация указателя
-        for (int i = 0; i < num; i ++)
-            std::fread(&stud[i], sizeof(student), 1, file);
-        
-        /*
-        std::copy (std::istream_iterator<student>(file),
-                   std::istream_iterator<student>(),
-                   std::back_inserter(stud));
-                   */
-
-        //file_str = static_cast<std::string>(memblock);
-        //int str_size = static_cast<std::string>(memblock).size();
-        //delete [] memblock;
-        //for (int i = 0; i < num; i++)
-        //    stud.push_back(arr[i]);
-
-        //str_parsing(stud, memblock);
-
-        //file.close();
-        std::fclose(file);
+        file.close();
 
     } else std::cout << "Unable to open file\n";
 }
 
-void write (std::ostream& out, std::vector<student> stud) 
+void write (std::string& new_name_file, std::vector<student>& stud) 
 {
-    //student* arr = new student [stud.size()];
-    //std::copy(stud.begin(), stud.end(), arr);
+    std::ofstream out (new_name_file, std::ios::binary | std::ios::trunc);
+    if (out.is_open())
+    {
+        int num = stud.size();
+        out.write(reinterpret_cast<char*>(&num), sizeof(int));
 
-    out.write(reinterpret_cast<char*>(&stud[0]), stud.size() * sizeof(student));
+        int num2 = stud[0].subjects.size();
+        out.write(reinterpret_cast<char*>(&num2), sizeof(int));
 
-    /*
-    short size = sizeof(stud[0].FCs);
-    out.write(reinterpret_cast<char*>(&size), sizeof(short));
-    out.write(reinterpret_cast<char*>(&stud[0].FCs), size);
-    */
+        for (int i = 0; i < num; i++)
+            out.write(reinterpret_cast<char*>(&stud[i]), sizeof(student));
+
+        out.close();
+
+    } else 
+        std::cout << "Unable to open a file\n";
 }
 
 int main () 
 {
     char answ = 0;
     std::string name_file;
-    std::cout << "Do you want to read from a file or write information in it?\nOr maybe you want to work with binary files? (r/w/b) ";
+    std::cout << "Do you want to read from a file or write information in it? (r/w) ";
     std::cin >> answ;
     std::cout << "Please, enter a name of file: ";
     std::cin >> name_file;
@@ -276,13 +252,6 @@ int main ()
 
         } else std::cout << "Unable to open file\n";
 
-    } else if (answ == 'b')
-    {
-        std::cout << "Please, enter number of students: ";
-        int num;
-        std::cin >> num;
-        read(stud, name_file, num);
-
     } else 
         std::cout << "Unknown command\n";
 
@@ -293,7 +262,14 @@ int main ()
         num = stud[0].subjects.size();
 
         //Sorting
-        std::sort(stud.begin(), stud.end(), compare); 
+        std::sort(stud.begin(), stud.end(), []  
+                (student stud1, student stud2)->bool
+                {
+                    int i = 0;
+                    for (i = 0; stud1.FCs[i] == stud2.FCs[i] 
+                                && i < std::max(stud1.FCs.size(), stud2.FCs.size()); ++i);
+                    return (stud1.FCs[i] < stud2.FCs[i]);
+                });
 
         //Average grade
         std::vector<float> aver(num2);
@@ -327,21 +303,23 @@ int main ()
         std::string new_name_file;
         std::cout << "Do you want to write your database to a binary file? (y/n) ";
         std::cin >> new_answ;
+
         if (new_answ == 'y' )
         {
             std::cout << "Please, enter a name of a file: ";
             std::cin >> new_name_file;
-            std::ofstream out (new_name_file, std::ios::binary);
 
-            //file.open(name_file, std::ios::in);
-            //std::getline(file, file_str,'\0');
+            // writing
+            write(new_name_file, stud);
 
-            write(out, stud);
+            // reading
+            auto stud2 = new std::vector<student>; 
+            std::cout << "Info from bin file:\n";
+            read(*stud2, new_name_file);
+            std::cout << *stud2;
 
-            out.close(); 
 
             return 0;
-
         } 
     }
 
