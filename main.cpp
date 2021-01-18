@@ -144,28 +144,40 @@ std::istream& operator >> (std::istream& file, std::vector<student>& stud)
     return file;
 }
 
-void read (std::vector<student>& stud, std::string name_file)
+void read (std::fstream& file, std::vector<student>& stud)
 {
-    std::ifstream file (name_file, std::ios::binary | std::ios::in);
+    int num = 0; //stud
+    file.read(reinterpret_cast<char*>(&num), sizeof(int));
+    stud.resize(num);
 
-    if(file.is_open()) {
+    int num2 = 0; //subj
+    file.read(reinterpret_cast<char*>(&num2), sizeof(int));
 
-        int num = 0; //stud
-        file.read(reinterpret_cast<char*>(&num), sizeof(int));
-        stud.resize(num);
+    std::vector <std::string> subj (num2);
+    for (int i = 0; i < num2; i++)
+    {
+        int size = 0;
+        file.read(reinterpret_cast<char*>(&size), sizeof(int));
+        char* name = new char [size];
+        file.read(name, size);
+        subj[i] = static_cast<std::string>(name);
+    }
 
-        int num2 = 0; //subj
-        file.read(reinterpret_cast<char*>(&num2), sizeof(int));
-
-        for (int i = 0; i < num; i++)
+    for (int i = 0; i < num; i++)
+    {
+        int name_len = 0;
+        file.read(reinterpret_cast<char*>(&name_len), sizeof(int));
+        char* name = new char [name_len];
+        file.read(name, name_len); 
+        stud[i].FCs = static_cast<std::string>(name);
+        stud[i].subjects.resize(num2);
+        for (int j = 0; j < num2; j++)
         {
-            stud[i].subjects.resize(num2);
-            file.read (reinterpret_cast<char*>(&stud[i]), sizeof(student));
+            stud[i].subjects[j].name = subj[j];
+            file.read(reinterpret_cast<char*>(&stud[i].subjects[j].grade), sizeof(int));
         }
+    }
 
-        file.close();
-
-    } else std::cout << "Unable to open file\n";
 }
 
 void write (std::string& new_name_file, std::vector<student>& stud) 
@@ -174,13 +186,26 @@ void write (std::string& new_name_file, std::vector<student>& stud)
     if (out.is_open())
     {
         int num = stud.size();
-        out.write(reinterpret_cast<char*>(&num), sizeof(int));
+        out.write(reinterpret_cast<char*>(&num), sizeof(int)); //number of students
 
         int num2 = stud[0].subjects.size();
-        out.write(reinterpret_cast<char*>(&num2), sizeof(int));
+        out.write(reinterpret_cast<char*>(&num2), sizeof(int)); //number of subjects
+
+        for (int i = 0; i < num2; i++)
+        {
+            int size = stud[0].subjects[i].name.length();
+            out.write(reinterpret_cast<char*>(&size), sizeof(int));
+            out.write(stud[0].subjects[i].name.c_str(), size);
+        } 
 
         for (int i = 0; i < num; i++)
-            out.write(reinterpret_cast<char*>(&stud[i]), sizeof(student));
+        {
+            int name = stud[i].FCs.length();
+            out.write(reinterpret_cast<char*>(&name), sizeof(int));
+            out.write(stud[i].FCs.c_str(), name);
+            for (int j = 0; j < num2; j++)
+                out.write(reinterpret_cast<char*>(&stud[i].subjects[j].grade), sizeof(int));
+        }
 
         out.close();
 
@@ -192,7 +217,8 @@ int main ()
 {
     char answ = 0;
     std::string name_file;
-    std::cout << "Do you want to read from a file or write information in it? (r/w) ";
+    std::cout << "Do you want to read from a file or write information in it?\n\
+Or maybe you want to work with binary files?(r/w/b)";
     std::cin >> answ;
     std::cout << "Please, enter a name of file: ";
     std::cin >> name_file;
@@ -251,6 +277,16 @@ int main ()
             file >> stud;
 
         } else std::cout << "Unable to open file\n";
+
+    } else if (answ == 'b')
+    {
+        file.open(name_file, std::ios::in | std::ios::binary);
+
+        if(file.is_open()) 
+
+            read(file, stud);
+
+        else std::cout << "Unable to open file\n";
 
     } else 
         std::cout << "Unknown command\n";
@@ -311,13 +347,6 @@ int main ()
 
             // writing
             write(new_name_file, stud);
-
-            // reading
-            auto stud2 = new std::vector<student>; 
-            std::cout << "Info from bin file:\n";
-            read(*stud2, new_name_file);
-            std::cout << *stud2;
-
 
             return 0;
         } 
